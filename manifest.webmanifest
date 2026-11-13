@@ -1,0 +1,10 @@
+{
+  "name": "SortMyParking",
+  "short_name": "SortMyParking",
+  "description": "Find, predict and reserve parking across Pune.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#F3F5F8",
+  "theme_color": "#1546B8",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

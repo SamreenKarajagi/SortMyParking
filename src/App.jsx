@@ -11,7 +11,6 @@ import SpotDetail from './components/SpotDetail';
 import AskPanel from './components/AskPanel';
 import MinePanel from './components/MinePanel';
 import BookingSheet from './components/BookingSheet';
-import PmView from './components/PmView';
 import { Spark } from './components/icons';
 
 const TABS = [
@@ -33,16 +32,13 @@ export default function App() {
   const [booking, setBooking] = useState(null);
   const [chat, setChat] = useState([]);
   const [busy, setBusy] = useState(false);
-  const [hash, setHash] = useState(() => location.hash);
   const [toast, setToast] = useState(null);
   const vehicle = store.vehicle;
 
   useEffect(() => {
     track('app_open');
-    const h = () => setHash(location.hash);
-    window.addEventListener('hashchange', h);
     const t = setInterval(() => setTick((x) => x + 1), 60000);
-    return () => { window.removeEventListener('hashchange', h); clearInterval(t); };
+    return () => clearInterval(t);
   }, []);
 
   const when = useMemo(() => {
@@ -136,8 +132,6 @@ export default function App() {
     track('report_submit', { spot: spotId, level });
   };
 
-  if (hash === '#pm') return <PmView />;
-
   const sel = selected && SPOTS.find((s) => s.id === selected);
 
   return (
@@ -196,7 +190,7 @@ export default function App() {
           )}
         </div>
         <footer className="foot">
-          Built in Pune as a product case study. <a href="#pm">Product metrics</a>
+          Built in Pune. <a href="./case-study/">Read the case study</a>
         </footer>
       </aside>
 

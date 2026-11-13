@@ -54,7 +54,6 @@ Two sides of the market: drivers (demand) and lot owners plus residents with idl
 - **Street parking saver**: save where you parked and check it against towing hotspots.
 - **Driver reports**: "plenty free / filling / full" updates the estimate for the next 45 minutes.
 - **Two fake-door tests**: the ₹99 Pass waitlist and the host earnings calculator. Cheap ways to measure demand before building.
-- **Product metrics view** (`#pm`): live funnel and event log, so I can see what users actually do.
 
 ### Cut on purpose
 - Real-time sensors. Expensive, slow to deploy, and the model plus reports gets most of the value early.
@@ -92,7 +91,7 @@ If the LLM is down, slow, or out of free quota, the on-device layer answers inst
 
 Guardrails: tow complaints from users who followed our advice (target zero), median time to first useful answer under 2 seconds, LLM cost per answer under ₹0.10.
 
-Every metric above is already instrumented. Events land in the local log and, with one environment key, in PostHog's free tier.
+Every metric above is already instrumented as an event. With one environment key, they flow into PostHog's free tier.
 
 ## 8. Making money (and saving users money)
 

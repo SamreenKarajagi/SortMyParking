@@ -70,7 +70,7 @@ export default function AskPanel({ chat, onAsk, busy, vehicle, onShow }) {
           )
         )}
         {busy && <p className="msg bot typing"><span /><span /><span /></p>}
-        <div ref={end} />
+        <div ref={end} className="thread-end" />
       </div>
 
       <form className="composer" onSubmit={(e) => { e.preventDefault(); submit(); }}>

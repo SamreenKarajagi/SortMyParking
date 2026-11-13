@@ -12,7 +12,7 @@ The product thinking behind every decision is in [docs/PRODUCT.md](docs/PRODUCT.
 - **Reserve or pay and park**: plate check, bill, QR ticket, countdown, one-tap extend.
 - **Avoid towing**: towing zones on the map, warnings in answers, and a street-parking saver that checks where you left the vehicle.
 - **Report**: one tap updates availability for everyone for 45 minutes.
-- **Product metrics**: open `#pm` to see the funnel and event log.
+- **Case study**: the full write-up lives at `/case-study/` on the deployed site.
 
 ## Run it
 
@@ -56,7 +56,8 @@ src/lib/rank.js          Deterministic ranking (odds, walk, price, preferences)
 src/lib/assistant.js     Saathi: parser for English/Hinglish/Marathi, grounded replies, live LLM call
 src/lib/store.js         Local state (swap for Supabase later, same shape)
 src/lib/analytics.js     Event tracking, local log + PostHog
-src/components/          Map, Find, Spot detail, Ask, Booking, Ticket, My parking, PM view
+src/components/          Map, Find, Spot detail, Ask, Booking, Ticket, My parking
+public/case-study/       Portfolio case study page and screenshots
 docs/PRODUCT.md          Problem, personas, AI design, metrics, revenue, GTM, roadmap
 ```
 

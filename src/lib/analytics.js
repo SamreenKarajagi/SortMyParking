@@ -1,5 +1,5 @@
-// Product analytics. Every event lands in a local log (powers the #pm view)
-// and, when VITE_POSTHOG_KEY is set, in PostHog's free tier for real cohorts and funnels.
+// Product analytics. Every event lands in a small local log and,
+// when VITE_POSTHOG_KEY is set, in PostHog's free tier for real cohorts and funnels.
 
 const KEY = 'smp:events';
 const PH_KEY = import.meta.env.VITE_POSTHOG_KEY;

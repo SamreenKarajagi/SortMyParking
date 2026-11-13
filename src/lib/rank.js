@@ -45,7 +45,10 @@ export function rankSpots(spots, preds, { dest, vehicle, filters = {}, durationH
   }
 
   const limit = filters.metro ? 200 : 20;
-  const reachable = dest ? rows.filter((r) => r.walk <= limit) : rows;
+  const near = rows.filter((r) => r.walk <= limit);
+  // Never recommend a lot that's closed when you arrive, unless every nearby lot is closed.
+  const openNear = near.filter((r) => r.pred.open);
+  const reachable = openNear.length ? openNear : near;
   let pool = reachable.filter((r) => !r.relaxed);
   // Not enough exact matches nearby, or the matches are all jammed? Mix in close
   // alternatives that miss a filter (flagged), rather than sending someone 35 minutes away.

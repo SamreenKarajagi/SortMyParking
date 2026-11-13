@@ -147,6 +147,11 @@ export function localAnswer(text, ctx) {
     return { parsed: { ...q, vehicle }, picks, reply: lines.join(' ') };
   }
 
+  if (!top.pred.open) {
+    lines.push(`Most lots near ${dest.name} are closed ${fmtWhen(q.when, now)}. ${top.spot.name} opens ${top.spot.hours.split(' to ')[0]}. If you're going now, use a 24-hour lot or pick a later time.`);
+    return { parsed: { ...q, vehicle }, picks, reply: lines.join(' ') };
+  }
+
   const free = top.pred.free[vehicle];
   lines.push(
     `For ${dest.name} ${fmtWhen(q.when, now)}, go for ${top.spot.name}. ` +

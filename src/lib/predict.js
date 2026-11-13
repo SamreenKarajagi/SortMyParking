@@ -87,14 +87,17 @@ function isOpen(spot, date) {
 export function predict(spot, date, report) {
   const { occ, source, ageMin, event } = occupancyAt(spot, date, report);
   const open = isOpen(spot, date);
+  // A closed lot has no free slots, whatever the demand curve says.
   const free = {
-    car: Math.round(spot.cap.car * (1 - occ)),
-    bike: Math.round(spot.cap.bike * (1 - occ)),
+    car: open ? Math.round(spot.cap.car * (1 - occ)) : 0,
+    bike: open ? Math.round(spot.cap.bike * (1 - occ)) : 0,
   };
   // ~3.5% of any lot is cars circling or bays blocked, so they don't count as findable.
   // Model estimates never claim certainty; a fresh report can push it a little higher.
   const ceiling = source === 'report' ? 0.98 : 0.95;
-  const chance = (v) => (!open || spot.cap[v] === 0 ? 0 : Math.min(ceiling, 1 - Math.exp(-Math.max(0, spot.cap[v] * (1 - occ - 0.035)) / 2.5)));
+  // A nearly full lot takes longer to search, so odds drop as occupancy climbs past 75%.
+  const crowding = 1 - Math.max(0, occ - 0.75) * 1.6;
+  const chance = (v) => (!open || spot.cap[v] === 0 ? 0 : Math.min(ceiling, 1 - Math.exp(-Math.max(0, spot.cap[v] * (1 - occ - 0.035)) / 2.5)) * crowding);
   return { occ, level: open ? levelOf(occ) : 'full', free, chance, source, ageMin, event, open };
 }
 

@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SortMyParking case study | Samreen Karajagi</title>
+<meta name="description" content="How I took SortMyParking, an AI parking assistant for Pune, from problem to live product with free tools. Research, decisions, trade-offs and an honest critique." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;600;800&family=Overpass+Mono:wght@600&family=Mukta:wght@600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --paper:#f3f5f8; --surface:#fff; --ink:#172033; --ink-2:#4a556b; --ink-3:#7b8597; --line:#d8dde6;
+  --sign:#1546b8; --sign-tint:#e8eefb; --kerb:#ffc21a; --go:#13795b; --tow:#cf3a2c; --tow-tint:#fdf0ee;
+  --font:'Overpass',system-ui,sans-serif; --mono:'Overpass Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--font);color:var(--ink);background:var(--surface);font-size:18px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--sign)}
+:focus-visible{outline:3px solid var(--kerb);outline-offset:2px;border-radius:3px}
+img{max-width:100%;height:auto;display:block}
+h1,h2,h3{line-height:1.15;margin:0}
+p{margin:0 0 1em}
+
+/* Top bar */
+.bar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.bar-in{max-width:1180px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:12px;font-size:15px}
+.bar strong{font-weight:800}
+.bar .who{color:var(--ink-3);margin-right:auto}
+.bar a.pill{text-decoration:none;font-weight:700;padding:7px 14px;border-radius:999px;box-shadow:inset 0 0 0 1.5px var(--ink);color:var(--ink)}
+.bar a.pill.primary{background:var(--sign);color:#fff;box-shadow:none}
+
+/* Hero */
+.hero{background:var(--sign);color:#fff;position:relative}
+.hero::after{content:'';position:absolute;left:0;right:0;bottom:0;height:12px;background:repeating-linear-gradient(-45deg,var(--ink) 0 14px,var(--kerb) 14px 28px)}
+.hero-in{max-width:1180px;margin:0 auto;padding:72px 24px 0;display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:end}
+.hero h1{font-size:clamp(44px,6vw,80px);font-weight:800;letter-spacing:-.03em}
+.hero .dek{font-size:clamp(20px,2.2vw,26px);line-height:1.35;margin:18px 0 28px;color:#dfe7fd;max-width:22ch}
+.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 28px;margin:0 0 56px;font-size:15px}
+.facts dt{color:#a9bbf2}
+.facts dd{margin:0;font-weight:600}
+.hero figure{margin:0;align-self:end}
+.hero figure img{border-radius:14px 14px 0 0;box-shadow:0 -10px 50px rgba(5,20,70,.45)}
+
+/* Layout */
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:56px}
+nav.toc{position:sticky;top:76px;align-self:start;padding-top:64px;font-size:14.5px}
+nav.toc ol{list-style:none;margin:0;padding:0;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:5px 0 5px 14px;margin-left:-2px;border-left:2px solid transparent;color:var(--ink-2);text-decoration:none}
+nav.toc a:hover{color:var(--ink);border-left-color:var(--ink)}
+nav.toc a.on{color:var(--sign);border-left-color:var(--sign);font-weight:700}
+main{padding:56px 0 80px;min-width:0}
+section{padding:40px 0;border-top:1px solid var(--line);scroll-margin-top:70px}
+section:first-child{border-top:0;padding-top:8px}
+.prose{max-width:68ch}
+h2{font-size:clamp(28px,3vw,38px);font-weight:800;letter-spacing:-.02em;margin-bottom:18px}
+h3{font-size:21px;font-weight:800;margin:28px 0 8px}
+.lead{font-size:22px;line-height:1.45;color:var(--ink)}
+.muted{color:var(--ink-2)}
+.small{font-size:15px}
+ul.clean{padding-left:1.1em;margin:0 0 1em}
+ul.clean li{margin:.3em 0}
+
+/* Callouts */
+.tldr{background:var(--paper);border-radius:16px;padding:24px 28px;margin:8px 0 0}
+.tldr p:last-child{margin:0}
+.note{border-left:4px solid var(--sign);background:var(--sign-tint);padding:14px 18px;border-radius:0 10px 10px 0;font-size:16px;margin:20px 0}
+.note.warn{border-color:var(--tow);background:var(--tow-tint)}
+.quote{font-size:24px;line-height:1.35;font-weight:600;max-width:30ch;margin:28px 0}
+
+/* Stat strip: numbers that carry the argument */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);border-radius:14px;margin:28px 0;overflow:hidden}
+.stats div{padding:18px 20px}
+.stats div+div{border-left:1px solid var(--line)}
+.stats strong{display:block;font-size:34px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.stats span{font-size:14.5px;color:var(--ink-2)}
+.stats a{font-size:13px;color:var(--ink-3)}
+
+/* Fine vs fee comparison */
+.versus{margin:24px 0;display:grid;gap:10px;max-width:640px}
+.versus .row{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:center;font-size:15px}
+.versus .bar-v{height:22px;border-radius:4px}
+.versus .fine-bar{background:var(--tow)}
+.versus .fee-bar{background:var(--sign);width:.7%;min-width:4px}
+.versus em{font-style:normal;font-weight:700}
+
+/* Tables */
+.table-wrap{overflow-x:auto;margin:20px 0}
+table{border-collapse:collapse;width:100%;font-size:15.5px;min-width:560px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:800;background:var(--paper)}
+td strong{font-weight:700}
+.tag{display:inline-block;font-size:13px;font-weight:700;padding:2px 9px;border-radius:4px}
+.t-now{background:#e5f3ee;color:var(--go)}
+.t-next{background:#fff4d6;color:#8a5d00}
+.t-cut{background:var(--paper);color:var(--ink-2)}
+
+/* Screens */
+figure.shot{margin:28px 0}
+figure.shot img{border-radius:12px;border:1px solid var(--line);box-shadow:0 20px 40px -24px rgba(23,32,51,.45)}
+figcaption{font-size:14.5px;color:var(--ink-2);margin-top:10px;max-width:68ch}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:28px 0}
+.pair figure{margin:0}
+.phone-row{display:grid;grid-template-columns:repeat(2,minmax(0,280px));gap:24px;margin:28px 0}
+.phone-row img{border-radius:22px;border:6px solid var(--ink)}
+
+/* AI layers */
+.layers{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:24px 0;counter-reset:l}
+.layer{border:1.5px solid var(--ink);border-radius:12px;padding:16px 18px;font-size:15.5px;position:relative}
+.layer::before{counter-increment:l;content:counter(l);position:absolute;top:-13px;left:14px;background:var(--surface);padding:0 6px;font-weight:800;color:var(--sign)}
+.layer h4{margin:0 0 6px;font-size:17px}
+.layer p{margin:0;color:var(--ink-2)}
+.layer.llm{border-style:dashed}
+
+/* Critique list */
+.crit{list-style:none;padding:0;margin:20px 0}
+.crit li{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+.crit .sev{font-size:13px;font-weight:800;padding:3px 9px;border-radius:4px;align-self:start;text-align:center}
+.sev-high{background:var(--tow-tint);color:var(--tow)}
+.sev-med{background:#fff4d6;color:#8a5d00}
+.sev-fixed{background:#e5f3ee;color:var(--go)}
+.crit p{margin:0}
+.crit strong{display:block;margin-bottom:2px}
+
+/* Validation scorecard */
+.score td:last-child{color:var(--ink-3);font-style:italic}
+
+footer{background:var(--ink);color:#c8cfdc;padding:48px 24px;font-size:15px}
+footer .in{max-width:1180px;margin:0 auto;display:flex;flex-wrap:wrap;gap:16px 32px;align-items:center}
+footer a{color:#fff}
+footer strong{color:#fff;margin-right:auto}
+
+@media (max-width:980px){
+  .wrap{grid-template-columns:1fr}
+  nav.toc{display:none}
+  .hero-in{grid-template-columns:1fr;padding-top:48px}
+  .facts{margin-bottom:32px}
+}
+@media (max-width:640px){
+  body{font-size:17px}
+  .stats{grid-template-columns:1fr}
+  .stats div+div{border-left:0;border-top:1px solid var(--line)}
+  .layers,.pair{grid-template-columns:1fr}
+  .phone-row{grid-template-columns:1fr 1fr;gap:12px}
+  .crit li{grid-template-columns:1fr;gap:8px}
+  .crit .sev{justify-self:start}
+  .bar .who{display:none}
+  .versus .row{grid-template-columns:110px 1fr}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="bar-in">
+    <strong>SortMyParking</strong>
+    <span class="who">Case study by Samreen Karajagi</span>
+    <a class="pill" href="https://github.com/SamreenKarajagi/sortmyparking">Code</a>
+    <a class="pill primary" href="https://sortmyparking-virid.vercel.app/">Try the app</a>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-in">
+    <div>
+      <h1>SortMyParking</h1>
+      <p class="dek">Know where you'll park in Pune before you leave home.</p>
+      <dl class="facts">
+        <div><dt>My role</dt><dd>Product owner. Problem, scope, design direction, every product call</dd></div>
+        <div><dt>Timeline</dt><dd>November 2026. Idea to live app in about a day</dd></div>
+        <div><dt>Built with</dt><dd>React, Vite, Vercel, Groq (Llama 3.3 70B). All free tiers</dd></div>
+        <div><dt>Status</dt><dd>Live. User validation starting now</dd></div>
+      </dl>
+    </div>
+    <figure><img src="search.webp" alt="SortMyParking showing the best bike parking near FC Road on Saturday at 6 pm, with a map of Pune" width="2000" height="1250" /></figure>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" aria-label="On this page">
+    <ol>
+      <li><a href="#summary">Summary</a></li>
+      <li><a href="#problem">The problem</a></li>
+      <li><a href="#why-now">Why Pune, why now</a></li>
+      <li><a href="#users">Who it's for</a></li>
+      <li><a href="#product">The product</a></li>
+      <li><a href="#ai">How the AI works</a></li>
+      <li><a href="#design">Design choices</a></li>
+      <li><a href="#scope">Built vs cut</a></li>
+      <li><a href="#money">Making money</a></li>
+      <li><a href="#metrics">Measuring success</a></li>
+      <li><a href="#critique">What's not good enough</a></li>
+      <li><a href="#next">Validation plan</a></li>
+      <li><a href="#build">How it was built</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <section id="summary">
+      <h2>Summary</h2>
+      <div class="tldr prose">
+        <p><strong>The problem.</strong> In Pune, the worst part of going out is the last 500 metres. You circle FC Road looking for a gap, leave the bike on the kerb, and come back to find it towed.</p>
+        <p><strong>What I built.</strong> A web app that predicts your odds of finding a slot at 32 lots across the city, ranks them by odds, walk and price, and lets you reserve. It also has Saathi, an assistant you can ask in English, Hinglish or Marathi.</p>
+        <p><strong>The bet.</strong> Drivers will plan parking before they leave if the answer comes in one question. And a ₹5 booking fee is an easy sell when a single tow costs over ₹700.</p>
+        <p><strong>Where it stands.</strong> Live and working. No real users yet, so every number on this page is either cited public data or a clearly marked target. The validation plan is at the end.</p>
+      </div>
+    </section>
+
+    <section id="problem">
+      <h2>The problem</h2>
+      <div class="prose">
+        <p class="lead">Parking in Pune isn't a search problem. It's an uncertainty problem.</p>
+        <p>Most people know roughly where the lots are. What they don't know is whether there'll be space when they arrive, whether the lane they're eyeing gets towed, and whether going 30 minutes earlier would change anything.</p>
+        <p>So they do what everyone does. Drive in, circle, and take a chance on the kerb. Local reporting shows how that ends. Visitors at Balewadi High Street describe haphazard parking, towing in no-parking zones, and towing charges that feel arbitrary. At Market Yard, a rider was fined ₹219 after paying a ₹10 parking fee to an authorised vendor and keeping the receipt.</p>
+        <p>The cost isn't just money. It's the dread of not knowing, which makes people skip plans or take a cab they didn't want.</p>
+        <p class="quote">A tow in Pune costs 100 to 150 times what I'd charge to book a slot.</p>
+      </div>
+      <div class="versus" role="img" aria-label="A tow costs about 147 times the bike booking fee">
+        <div class="row"><span>Bike tow and fine</span><div><div class="bar-v fine-bar" style="width:100%"></div><em>₹736</em> in Pimpri-Chinchwad</div></div>
+        <div class="row"><span>Booking fee, bike</span><div><div class="bar-v fee-bar"></div><em>₹5</em></div></div>
+      </div>
+      <p class="muted small prose">Pimpri-Chinchwad: ₹500 fine, ₹200 towing, ₹36 GST. Pune city no-parking fines start around ₹785 for bikes and ₹1,071 for cars.</p>
+    </section>
+
+    <section id="why-now">
+      <h2>Why Pune, why now</h2>
+      <div class="prose">
+        <p>Three things are converging at once.</p>
+      </div>
+      <div class="stats">
+        <div><strong>3,45,543</strong><span>new vehicles registered at Pune RTO in FY 2025-26, up from about 3.05 lakh the year before</span></div>
+        <div><strong>39 lakh+</strong><span>vehicles registered with Pune RTO by April 2025. Over 65 lakh across the wider metro region</span></div>
+        <div><strong>6 roads</strong><span>picked for PMC's Pay and Park trial, including FC Road, JM Road and Laxmi Road</span></div>
+      </div>
+      <div class="prose">
+        <p><strong>More vehicles, mostly two-wheelers.</strong> During Gudi Padwa 2025, 6,510 of the 10,170 new registrations were motorcycles. Bikes are where the kerbside towing pain lands hardest.</p>
+        <p><strong>Enforcement is real.</strong> Towing drives are regular on the city's busiest streets, and repeat fines climb past ₹1,700 for bikes.</p>
+        <p><strong>The city is finally going digital.</strong> PMC's Pay and Park policy was approved in 2018 and sat unused for seven years. It's now being trialled. Researchers at Pune International Centre argue the 2016 parking policy is outdated and call for demand-based pricing and digital platforms. When the city starts charging on FC Road, people will search for how it works. That's the moment to be the answer.</p>
+      </div>
+    </section>
+
+    <section id="users">
+      <h2>Who it's for</h2>
+      <div class="prose">
+        <p>These four people are hypotheses. I built them from public reporting and from living in Pune, not from interviews yet. Interviews come next, and they'll confirm, merge or kill these.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Who</th><th>Situation</th><th>What hurts</th><th>Done looks like</th></tr></thead>
+          <tbody>
+            <tr><td><strong>The bike commuter</strong><br><span class="muted small">26, IT in Hinjewadi</span></td><td>Daily office runs, weekend FC Road plans</td><td>Towed a couple of times a year. Never knows which lanes are safe</td><td>Parks in under 3 minutes, never towed</td></tr>
+            <tr><td><strong>The family driver</strong><br><span class="muted small">34, car, Kothrud</span></td><td>Laxmi Road shopping, temple visits with parents</td><td>Old city lanes, parents can't walk far</td><td>Knows the closest legal lot before leaving home</td></tr>
+            <tr><td><strong>The weekend driver</strong><br><span class="muted small">29, car, Viman Nagar</span></td><td>Phoenix on Saturdays, airport runs</td><td>Basement queues at peak</td><td>Arrives when it's easy, or skips the queue</td></tr>
+            <tr><td><strong>The spot owner</strong><br><span class="muted small">52, society flat, Aundh</span></td><td>Her parking spot sits empty 10 am to 7 pm</td><td>Wasted asset</td><td>Earns a few thousand a month, safely</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Jobs to be done</h3>
+      <ul class="clean prose">
+        <li>Before I leave, tell me where I'll leave the vehicle, so I don't circle.</li>
+        <li>When I'm about to park on the street, tell me if I'm about to get towed.</li>
+        <li>When nothing's close, give me a smart way out: go earlier, try the next lot, or park at a metro station and ride in.</li>
+        <li>When my spot sits empty, let me earn from it without the hassle.</li>
+      </ul>
+    </section>
+
+    <section id="product">
+      <h2>The product</h2>
+      <div class="prose">
+        <p>One promise drove every screen: <strong>answer "where do I park?" in one step, with an honest level of confidence.</strong></p>
+        <h3>Find: odds, walk and price in one list</h3>
+        <p>Pick a destination, car or bike, and when you'll arrive. Lots are ranked by your chance of getting a slot, the walk and the price. Availability shows as ten painted bays filling up, because that's how a lot actually looks.</p>
+      </div>
+      <figure class="shot"><img src="detail.webp" alt="FC Road pay and park detail: 95% chance, Tight, about 17 of 160 bike slots free, hourly busy chart, towing zone on map" loading="lazy" width="2000" height="1250" /><figcaption>The spot view. Odds, an hour-by-hour busy chart, and a nudge when arriving earlier would help. The striped circles on the map are towing hotspots.</figcaption></figure>
+      <div class="prose">
+        <h3>Saathi: ask the way you'd ask a friend</h3>
+        <p>"Dagdusheth la jaycha aahe, gaadi kuthe lavu?" gets a real answer. That's Marathi for "I'm going to Dagdusheth, where do I park?" Saathi picks a lot, names a backup and warns you about towing. Tap any pick and the map, time and vehicle all carry over.</p>
+      </div>
+      <figure class="shot"><img src="saathi.webp" alt="Saathi answering a Marathi question with Shaniwar Wada parking as the top pick and a towing warning for Laxmi Road" loading="lazy" width="2000" height="1250" /><figcaption>Saturday, 6:30 pm. Saathi recommends a lot 7 minutes away, keeps a backup, and flags the Laxmi Road towing zone.</figcaption></figure>
+      <div class="prose">
+        <h3>Reserve, or pay and park</h3>
+        <p>Private lots and malls can be reserved. Civic lots are pay on arrival, because a reservation the lot doesn't know about is worse than none. Checkout validates Indian number plates, including BH series, and shows the fee clearly. The ticket has a QR code, a countdown and one-tap extend.</p>
+      </div>
+      <div class="pair">
+        <figure class="shot"><img src="checkout.webp" alt="Checkout with duration stepper, number plate, payment options and bill" loading="lazy" width="2000" height="1250" /><figcaption>Checkout. The booking fee is a separate line, never hidden.</figcaption></figure>
+        <figure class="shot"><img src="ticket.webp" alt="Parking ticket with plate number, time window, countdown and QR code" loading="lazy" width="2000" height="1250" /><figcaption>The ticket. It's the one loud object in the product, styled after kerb paint.</figcaption></figure>
+      </div>
+      <div class="prose">
+        <h3>The smaller things that matter</h3>
+        <ul class="clean">
+          <li><strong>Street parking saver.</strong> Save where you left the bike. It checks the spot against towing zones and walks you back later.</li>
+          <li><strong>One-tap reports.</strong> "Plenty free", "Filling up" or "Full" updates that lot's estimate for everyone for 45 minutes.</li>
+          <li><strong>Two fake doors.</strong> A ₹99/month Pass waitlist and a host earnings calculator. They measure demand before I build either.</li>
+        </ul>
+      </div>
+      <div class="phone-row">
+        <figure class="shot"><img src="mobile-saathi.webp" alt="Mobile view of Saathi recommending Ramwadi Metro park and ride for Phoenix on a Saturday evening" loading="lazy" width="780" height="1688" /><figcaption>Phoenix on a Saturday evening. Covered spots are full, so Saathi suggests the metro lot and says when Phoenix frees up.</figcaption></figure>
+        <figure class="shot"><img src="mobile-detail.webp" alt="Mobile spot detail with hourly forecast and reserve button" loading="lazy" width="780" height="1688" /><figcaption>Mobile first. The map sits on top and the panel slides up like a sheet.</figcaption></figure>
+      </div>
+    </section>
+
+    <section id="ai">
+      <h2>How the AI works, and where it doesn't</h2>
+      <div class="prose">
+        <p class="lead">The easy version lets the model answer everything. For parking, that's dangerous.</p>
+        <p>A chatty model that invents "plenty of space at FC Road" sends someone into a towing zone. So I split the job into three layers, and the language model only gets the part it's good at.</p>
+      </div>
+      <div class="layers">
+        <div class="layer"><h4>Understand</h4><p>On-device parser reads place, time, vehicle and wants ("covered", "cheapest", "udya", "5 baje", "from Kothrud").</p></div>
+        <div class="layer"><h4>Decide</h4><p>A fixed scoring model ranks real lots on predicted odds, walk, price and preferences. Same question, same answer.</p></div>
+        <div class="layer llm"><h4>Talk</h4><p>Llama 3.3 70B on Groq rewrites the answer warmly. It can only pick from lot IDs we send it.</p></div>
+      </div>
+      <div class="prose">
+        <h3>Guardrails</h3>
+        <ul class="clean">
+          <li>The model never sees the whole city, only the 6 best candidates with their real numbers.</li>
+          <li>Unknown lot IDs get dropped twice, once on the server and once in the app.</li>
+          <li>If the model is slow (9 second timeout), down or out of free quota, the on-device layer answers instantly. Users never see an error.</li>
+          <li>Every reply is labelled "Live AI" or "On-device AI", so I can compare the two once real people use it.</li>
+        </ul>
+        <h3>The availability model</h3>
+        <p>Each lot has a demand profile: office, mall, market, nightlife, transit, college, hospital or residential. Occupancy comes from that curve by hour and weekday or weekend, plus city events like Ganeshotsav, plus fresh driver reports.</p>
+        <p>Two rules make it honest. Odds never show 100%, because it's an estimate. And odds drop as a lot fills past 75%, since a lot with 17 free bays out of 160 still means a hunt.</p>
+        <div class="note">This model is hand-tuned, not trained. It's version one, built to be explainable on day one. Version two learns the curves from bookings and reports. That's why reporting is one tap and shows its effect immediately: reports are the training data.</div>
+      </div>
+    </section>
+
+    <section id="design">
+      <h2>Design choices</h2>
+      <div class="prose">
+        <p>I wanted it to feel like it belongs on a Pune street, not like a template.</p>
+        <ul class="clean">
+          <li><strong>Visual language from road furniture.</strong> Parking-sign blue, black-and-yellow kerb stripes, and Overpass, a typeface descended from highway signage. The kerb stripe only appears where it means something: towing warnings and the ticket.</li>
+          <li><strong>A schematic map instead of a map SDK.</strong> It's drawn from coordinates, loads instantly, costs nothing and needs no key. Turn-by-turn directions go to Google Maps, which everyone already uses.</li>
+          <li><strong>Bays, not a progress bar.</strong> Ten painted bays read faster than a percentage and look like the lot itself.</li>
+          <li><strong>No login to look.</strong> Nobody should sign up to find out where to park. A number plate is only asked for at checkout.</li>
+          <li><strong>Local language, local defaults.</strong> Saathi understands Marathi and Hinglish. A day with no time means 6:30 pm, because that's when Pune goes out. Office trips default to morning.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="scope">
+      <h2>What I built and what I cut</h2>
+      <div class="prose"><p>The rule: ship what proves the core bet, fake what tests demand, cut what's expensive and unproven.</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Feature</th><th>Why</th><th>Call</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Odds, ranking, busy chart</strong></td><td>The core promise. Without it this is just a list of lots</td><td><span class="tag t-now">Built</span></td></tr>
+            <tr><td><strong>Saathi assistant</strong></td><td>One question instead of five filters. Tests whether people plan ahead</td><td><span class="tag t-now">Built</span></td></tr>
+            <tr><td><strong>Towing zones and street saver</strong></td><td>The sharpest pain, and the reason to pay ₹5</td><td><span class="tag t-now">Built</span></td></tr>
+            <tr><td><strong>Driver reports</strong></td><td>Cheapest live data source, and future training data</td><td><span class="tag t-now">Built</span></td></tr>
+            <tr><td><strong>Reserve and ticket</strong></td><td>Proves the flow end to end. Payments are a demo</td><td><span class="tag t-now">Built</span></td></tr>
+            <tr><td><strong>Pass and host listings</strong></td><td>Real demand unknown. A waitlist answers that for free</td><td><span class="tag t-next">Fake door</span></td></tr>
+            <tr><td><strong>Live payments</strong></td><td>Razorpay test mode first, after lot partners agree to honour bookings</td><td><span class="tag t-next">Next</span></td></tr>
+            <tr><td><strong>Accounts and sync</strong></td><td>Supabase schema is ready. Not needed to test the core bet</td><td><span class="tag t-next">Next</span></td></tr>
+            <tr><td><strong>Real-time sensors</strong></td><td>Expensive and slow to deploy. Reports get most of the value early</td><td><span class="tag t-cut">Cut</span></td></tr>
+            <tr><td><strong>Full map SDK</strong></td><td>Cost and keys for little gain over a Google Maps handoff</td><td><span class="tag t-cut">Cut</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="money">
+      <h2>Making money</h2>
+      <div class="prose"><p>The user pitch comes first: one avoided tow pays for years of booking fees.</p></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stream</th><th>How</th><th>Why it fits</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Booking fee</strong></td><td>₹5 bike, ₹10 car</td><td>Tiny next to a ₹736+ tow</td></tr>
+            <tr><td><strong>Host commission</strong></td><td>15% of host-spot bookings</td><td>Supply nobody else has</td></tr>
+            <tr><td><strong>Pass</strong></td><td>₹99/month: no fees, tow alerts, monthly office spots</td><td>Turns commuters into subscribers</td></tr>
+            <tr><td><strong>Lot partners</strong></td><td>Promoted placement, clearly labelled</td><td>Lots want to fill quiet hours</td></tr>
+            <tr><td><strong>Offices</strong></td><td>Monthly parking near Hinjewadi, Kharadi, Magarpatta</td><td>Companies already buy this, badly</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warn prose"><strong>Illustrative, not results.</strong> At 50,000 monthly users, if 20% book about 2.5 times at an average fee of ₹7.5, that's roughly ₹1.9 lakh a month in fees. Add 1,500 Pass subscribers (₹1.5 lakh) and 300 host spots doing ₹4,000 each at 15% (₹1.8 lakh). About ₹5 lakh a month before office deals. Every input here is an assumption the validation plan has to replace.</div>
+      <div class="prose"><p>Running costs stay close to zero at this stage. Vercel, Groq, Supabase and PostHog all have free tiers that cover early traffic.</p></div>
+    </section>
+
+    <section id="metrics">
+      <h2>How I'll know it works</h2>
+      <div class="prose">
+        <p><strong>North Star: successful parks per week.</strong> A park counts if someone went to a lot we suggested and didn't report it full, or reserved and checked in. It captures both halves of the value: we found a spot, and they trusted us enough to go.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Stage</th><th>Metric</th><th>Target to test</th></tr></thead>
+          <tbody>
+            <tr><td>Activation</td><td>Sets a destination in the first session</td><td>60%</td></tr>
+            <tr><td>Engagement</td><td>Opens a lot after searching</td><td>45%</td></tr>
+            <tr><td>Conversion</td><td>Reserves or pays after opening a lot</td><td>12%</td></tr>
+            <tr><td>AI quality</td><td>Saathi answers where the user opens a pick</td><td>40%</td></tr>
+            <tr><td>Trust</td><td>Driver reports that agree with our prediction</td><td>70%</td></tr>
+            <tr><td>Retention</td><td>Week 4 return rate for people who booked</td><td>25%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <p><strong>Guardrails:</strong> zero tows for people who followed our advice, first useful answer in under 2 seconds, and model cost under ₹0.10 an answer.</p>
+        <p class="muted small">Every metric is already tracked as an event in the app and flows to PostHog once its key is set.</p>
+      </div>
+    </section>
+
+    <section id="critique">
+      <h2>What's not good enough yet</h2>
+      <div class="prose">
+        <p>I reviewed my own work the way I'd review a teammate's. Some issues I found and fixed during the build. The rest are open, and I'd rather name them than have an interviewer find them.</p>
+      </div>
+      <ul class="crit prose">
+        <li><span class="sev sev-high">Biggest gap</span><p><strong>Reservations aren't real yet.</strong> No lot has agreed to honour a booking. A reservation the attendant doesn't know about is worse than none, so live bookings wait for the first lot partner. Until then, "Reserve" is a flow test.</p></li>
+        <li><span class="sev sev-high">Biggest gap</span><p><strong>No users, so no evidence.</strong> Personas, targets and the revenue model are all assumptions. The product is built to collect evidence, but it hasn't yet.</p></li>
+        <li><span class="sev sev-high">Risk</span><p><strong>The host-spot bet may hit society rules.</strong> Many housing societies restrict outsiders using residents' parking. This could kill the supply idea, or limit it to deals made with the whole society. I need to test this with residents' associations before building anything more.</p></li>
+        <li><span class="sev sev-med">Weak</span><p><strong>The availability model is unproven.</strong> The curves are educated guesses, and lot capacities and rates are demo values. Real accuracy is unknown until I compare predictions with real visits.</p></li>
+        <li><span class="sev sev-med">Weak</span><p><strong>Marathi in, English out.</strong> Saathi understands Marathi, but the interface doesn't speak it. A Marathi interface is on the roadmap.</p></li>
+        <li><span class="sev sev-med">Weak</span><p><strong>Towing zones are a fixed list.</strong> They come from news reports, not live data. They should come from user tow reports.</p></li>
+        <li><span class="sev sev-med">Trade-off</span><p><strong>The schematic map is great for choosing, poor for arriving.</strong> It relies on handing off to Google Maps for the last mile.</p></li>
+        <li><span class="sev sev-fixed">Fixed</span><p><strong>Saathi recommended a closed lot at night</strong> and claimed hundreds of free slots. Found while reviewing screenshots. Closed lots now drop out of the ranking, and Saathi says so plainly.</p></li>
+        <li><span class="sev sev-fixed">Fixed</span><p><strong>Odds and labels disagreed.</strong> A lot showed "95% chance" next to "Tight". Odds now fall as a lot fills, so the two signals tell the same story.</p></li>
+        <li><span class="sev sev-fixed">Fixed</span><p><strong>Saathi picked a lot 35 minutes away</strong> when nothing matched every filter. Now it offers a close lot that misses one ask, says which ask it misses, and tells you when your first choice frees up.</p></li>
+      </ul>
+    </section>
+
+    <section id="next">
+      <h2>Validation plan</h2>
+      <div class="prose">
+        <p>Six weeks to turn assumptions into evidence. The results column stays empty until there's real data.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="score">
+          <thead><tr><th>Test</th><th>How</th><th>Pass if</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Problem interviews</strong></td><td>15 to 20 Pune drivers across the four personas</td><td>Most have circled or been towed in the last 6 months</td><td>Pending</td></tr>
+            <tr><td><strong>Survey</strong></td><td>Short form shared in college and society groups</td><td>200 responses. Searching time and tow frequency measured</td><td>Pending</td></tr>
+            <tr><td><strong>Usability</strong></td><td>5 people, 3 tasks: plan a Phoenix Saturday, find bike parking on FC Road, reserve and extend</td><td>4 of 5 finish each task unaided</td><td>Pending</td></tr>
+            <tr><td><strong>Prediction check</strong></td><td>Visit 5 lots at 3 times of day, compare with the app</td><td>Level right 7 times in 10</td><td>Pending</td></tr>
+            <tr><td><strong>Pass fake door</strong></td><td>Waitlist button in My parking</td><td>5% of weekly users join</td><td>Pending</td></tr>
+            <tr><td><strong>Host demand</strong></td><td>Earnings calculator plus 3 residents' association conversations</td><td>One society open to a pilot</td><td>Pending</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="prose">
+        <h3>Roadmap</h3>
+        <ul class="clean">
+          <li><strong>Next 6 weeks:</strong> run the plan above, add accounts, set up Razorpay test mode, send "15 minutes left" alerts.</li>
+          <li><strong>Next quarter:</strong> first 5 lot partners, first host pilot, learned availability curves, Marathi interface.</li>
+          <li><strong>Later:</strong> PMC Pay and Park integration, office parking deals, EV charger booking.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="build">
+      <h2>How it was built</h2>
+      <div class="prose">
+        <p>I owned the product: the problem, research, scope, flows, design direction, metrics and every trade-off on this page. I built it with Claude as my coding partner, which let me go from idea to a live, deployed app in about a day. I reviewed every flow, tested it on desktop and mobile, and found and fixed the bugs listed above.</p>
+        <p>Everything runs on free tiers, on purpose. A side project should prove the idea before it costs anything.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Need</th><th>Tool</th></tr></thead>
+          <tbody>
+            <tr><td>App</td><td>React 18 and Vite</td></tr>
+            <tr><td>Hosting and API</td><td>Vercel (static site plus one serverless function)</td></tr>
+            <tr><td>Language model</td><td>Groq free tier, Llama 3.3 70B</td></tr>
+            <tr><td>Analytics</td><td>PostHog free tier</td></tr>
+            <tr><td>Database, next</td><td>Supabase with PostGIS, schema already written</td></tr>
+            <tr><td>Map</td><td>Hand-drawn SVG from coordinates, Google Maps for directions</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="sources">
+      <h2>Sources</h2>
+      <ul class="clean small prose">
+        <li><a href="https://www.punekarnews.in/?p=232355">Pune RTO FY 2025-26 performance report</a>, Punekar News</li>
+        <li><a href="https://www.freepressjournal.in/pune/punes-vehicle-count-crosses-39-lakh-worsening-traffic-electric-vehicle-sales-decline">Pune's vehicle count crosses 39 lakh</a>, Free Press Journal</li>
+        <li><a href="https://www.downtoearth.org.in/air/how-india-moves-punes-roads-buckle-under-an-explosion-of-two-wheeler-traffic">How India moves: Pune's roads and two-wheeler traffic</a>, Down To Earth</li>
+        <li><a href="https://www.punekarnews.in/?p=201983">Gudi Padwa 2025 vehicle registrations</a>, Punekar News</li>
+        <li><a href="https://www.freepressjournal.in/pune/pune-pmc-to-finally-roll-out-pay-park-policy-after-seven-years-trial-on-six-roads">PMC Pay and Park trial on six roads</a>, Free Press Journal</li>
+        <li><a href="https://www.thebridgechronicle.com/news/no-parking-pimpri-chinchwad-police-to-fine-736-for-two-wheelers-972-for-four-wheelers">Pimpri-Chinchwad towing fines</a>, The Bridge Chronicle</li>
+        <li><a href="https://www.tataaig.com/knowledge-center/two-wheeler-insurance/no-parking-fine-in-pune">No parking fine in Pune</a>, TATA AIG</li>
+        <li><a href="https://puneinternationalcentre.org/?p=25312">Towards a new parking policy for Pune</a>, Pune International Centre</li>
+        <li><a href="https://www.freepressjournal.in/amp/pune/pune-news-parking-chaos-at-balewadi-high-street-leaves-visitors-frustrated">Parking chaos at Balewadi High Street</a>, Free Press Journal</li>
+        <li><a href="https://www.freepressjournal.in/pune/parking-scam-at-punes-market-yard-vehicles-towed-fined-despite-paying-official-parking-fee">Vehicles towed despite paying the parking fee at Market Yard</a>, Free Press Journal</li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<footer>
+  <div class="in">
+    <strong>Samreen Karajagi, Product Manager, Pune</strong>
+    <a href="https://sortmyparking-virid.vercel.app/">Try SortMyParking</a>
+    <a href="https://github.com/SamreenKarajagi/sortmyparking">Code on GitHub</a>
+    <a href="https://samreenkarajagi-portfolio.vercel.app/">Portfolio</a>
+    <a href="https://linkedin.com/in/samreen-karajagi">LinkedIn</a>
+  </div>
+</footer>
+
+<script>
+// Highlight the section in view in the side contents
+(function(){
+  var links=[].slice.call(document.querySelectorAll('nav.toc a'));
+  if(!('IntersectionObserver' in window)||!links.length)return;
+  var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){
+    if(e.isIntersecting){links.forEach(function(l){l.classList.remove('on')});var a=map[e.target.id];if(a)a.classList.add('on')}
+  })},{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('main section[id]').forEach(function(s){io.observe(s)});
+})();
+</script>
+</body>
+</html>
